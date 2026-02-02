@@ -50,9 +50,10 @@ app.post('/scrape-cellstation', async (req, res) => {
   try {
     console.log('📦 מפעיל דפדפן...');
     
-    // Launch browser
+    // Launch browser - will find Chrome automatically
     browser = await puppeteer.launch({
       headless: true,
+      executablePath: puppeteer.executablePath(),
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -139,79 +140,4 @@ app.post('/scrape-cellstation', async (req, res) => {
           const packageName = planEl ? planEl.textContent.trim() : '';
           
           // Extract expiry date
-          const expiryText = card.querySelector('p[style*="display: inline-block"]');
-          let expiryDate = null;
-          if (expiryText) {
-            const match = expiryText.textContent.match(/\d{4}-\d{2}-\d{2}/);
-            expiryDate = match ? match[0] : null;
-          }
-          
-          // Only add if we have a valid SIM number
-          if (simNumber && simNumber.length > 10) {
-            results.push({
-              short_number: shortNumber,
-              local_number: localNumber,
-              israeli_number: israeliNumber,
-              sim_number: simNumber,
-              package_name: packageName,
-              expiry_date: expiryDate,
-              is_active: isActive,
-              is_rented: false
-            });
-          }
-        } catch (err) {
-          console.error('Error parsing card:', err);
-        }
-      });
-      
-      return results;
-    });
-    
-    await browser.close();
-    
-    console.log(`✅ הושלם! נמצאו ${sims.length} סימים`);
-    
-    res.json({ 
-      success: true, 
-      sims: sims,
-      count: sims.length,
-      timestamp: new Date().toISOString()
-    });
-    
-  } catch (error) {
-    console.error('❌ שגיאה:', error.message);
-    
-    if (browser) {
-      await browser.close();
-    }
-    
-    res.status(500).json({ 
-      success: false, 
-      error: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
-  }
-});
-
-/**
- * Start server
- */
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📡 Ready to scrape CellStation`);
-  console.log(`🔗 Health check: http://localhost:${PORT}/`);
-  console.log(`🔗 Scrape endpoint: POST http://localhost:${PORT}/scrape-cellstation`);
-});
-
-/**
- * Graceful shutdown
- */
-process.on('SIGTERM', () => {
-  console.log('👋 SIGTERM signal received: closing HTTP server');
-  process.exit(0);
-});
-
-process.on('SIGINT', () => {
-  console.log('👋 SIGINT signal received: closing HTTP server');
-  process.exit(0);
-});
+          const expiryText = card.querySelector('p[sty
